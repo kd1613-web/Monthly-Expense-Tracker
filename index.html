@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseTracker - Monthly Expense Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .category-food { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
+        .category-rent { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+        .category-shopping { background: linear-gradient(135deg, #a8e6cf, #7fcdcd); }
+        .category-travel { background: linear-gradient(135deg, #ffd93d, #ff6b6b); }
+        .category-other { background: linear-gradient(135deg, #c7ceea, #a8b2d1); }
+        .hero-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .feature-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .floating { animation: floating 3s ease-in-out infinite; }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-full">
+    <div id="app" class="min-h-full">
+        <!-- Login/Landing Page -->
+        <div id="login-page" class="min-h-screen">
+            <!-- Hero Section -->
+            <section class="hero-gradient min-h-screen flex items-center justify-center relative overflow-hidden">
+                <!-- Background decorations -->
+                <div class="absolute inset-0 overflow-hidden">
+                    <div class="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-10 rounded-full floating"></div>
+                    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-5 rounded-full floating" style="animation-delay: -1s;"></div>
+                    <div class="absolute top-1/2 left-1/4 w-32 h-32 bg-white opacity-10 rounded-full floating" style="animation-delay: -2s;"></div>
+                </div>
+
+                <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <!-- Left side - Content -->
+                        <div class="text-white">
+                            <div class="mb-8">
+                                <h1 class="text-5xl lg:text-6xl font-bold mb-6">
+                                    💰 <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">ExpenseTracker</span>
+                                </h1>
+                                <p class="text-xl lg:text-2xl text-purple-100 mb-8">
+                                    Take control of your finances with smart expense tracking and beautiful insights
+                                </p>
+                            </div>
+
+                            <!-- Feature highlights -->
+                            <div class="grid grid-cols-2 gap-4 mb-8">
+                                <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+                                    <div class="text-2xl mb-2">📊</div>
+                                    <h3 class="font-semibold mb-1">Smart Analytics</h3>
+                                    <p class="text-sm text-purple-100">Visual charts and insights</p>
+                                </div>
+                                <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+                                    <div class="text-2xl mb-2">🏷️</div>
+                                    <h3 class="font-semibold mb-1">Categories</h3>
+                                    <p class="text-sm text-purple-100">Organize by type</p>
+                                </div>
+                                <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+                                    <div class="text-2xl mb-2">📱</div>
+                                    <h3 class="font-semibold mb-1">Responsive</h3>
+                                    <p class="text-sm text-purple-100">Works on all devices</p>
+                                </div>
+                                <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+                                    <div class="text-2xl mb-2">💾</div>
+                                    <h3 class="font-semibold mb-1">Local Storage</h3>
+                                    <p class="text-sm text-purple-100">Your data stays private</p>
+                                </div>
+                            </div>
+
+                            <button onclick="showLoginForm()" class="bg-white text-purple-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors shadow-lg">
+                                Get Started Free →
+                            </button>
+                        </div>
+
+                        <!-- Right side - Login Form -->
+                        <div id="login-form" class="bg-white rounded-2xl shadow-2xl p-8 hidden">
+                            <div class="text-center mb-8">
+                                <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h2>
+                                <p class="text-gray-600">Sign in to access your expense dashboard</p>
+                            </div>
+
+                            <form onsubmit="handleLogin(event)" class="space-y-6">
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                    <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="your@email.com">
+                                </div>
+                                <div>
+                                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                    <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="••••••••">
+                                </div>
+                                <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105">
+                                    Sign In to Dashboard
+                                </button>
+                            </form>
+
+                            <div class="mt-6 text-center">
+                                <p class="text-gray-600 text-sm">
+                                    Demo credentials: <br>
+                                    <span class="font-mono bg-gray-100 px-2 py-1 rounded">demo@expense.com</span> / 
+                                    <span class="font-mono bg-gray-100 px-2 py-1 rounded">demo123</span>
+                                </p>
+                            </div>
+
+                            <div class="mt-6 text-center">
+                                <button onclick="hideLoginForm()" class="text-purple-600 hover:text-purple-800 text-sm">
+                                    ← Back to features
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right side - Feature Preview (when login form is hidden) -->
+                        <div id="feature-preview" class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
+                            <h3 class="text-2xl font-bold text-white mb-6 text-center">What You'll Get</h3>
+                            
+                            <!-- Mini dashboard preview -->
+                            <div class="space-y-4">
+                                <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-white text-sm">Monthly Total</span>
+                                        <span class="text-2xl">💳</span>
+                                    </div>
+                                    <div class="text-2xl font-bold text-white">$2,847.50</div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-white text-xs">Food</span>
+                                            <span class="text-lg">🍕</span>
+                                        </div>
+                                        <div class="text-lg font-bold text-white">$485</div>
+                                    </div>
+                                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-white text-xs">Rent</span>
+                                            <span class="text-lg">🏠</span>
+                                        </div>
+                                        <div class="text-lg font-bold text-white">$1,200</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                                    <div class="text-white text-sm mb-2">Recent Expenses</div>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center text-white text-sm">
+                                            <span>🛍️ Shopping Mall</span>
+                                            <span>$89.99</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-white text-sm">
+                                            <span>☕ Coffee Shop</span>
+                                            <span>$12.50</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-white text-sm">
+                                            <span>⛽ Gas Station</span>
+                                            <span>$45.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="py-20 bg-white">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-bold text-gray-900 mb-4">Powerful Features</h2>
+                        <p class="text-xl text-gray-600">Everything you need to manage your expenses effectively</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Feature 1 -->
+                        <div class="feature-card bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-2xl text-white mb-6">
+                                📊
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Interactive Charts</h3>
+                            <p class="text-gray-600 mb-4">Beautiful pie charts and bar graphs to visualize your spending patterns across different categories and months.</p>
+                            <ul class="text-sm text-gray-500 space-y-1">
+                                <li>• Category breakdown pie chart</li>
+                                <li>• Monthly comparison bar chart</li>
+                                <li>• Real-time data updates</li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 2 -->
+                        <div class="feature-card bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+                            <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center text-2xl text-white mb-6">
+                                🏷️
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Smart Categories</h3>
+                            <p class="text-gray-600 mb-4">Organize expenses into predefined categories with beautiful icons and color coding for easy identification.</p>
+                            <ul class="text-sm text-gray-500 space-y-1">
+                                <li>• Food, Rent, Shopping, Travel, Other</li>
+                                <li>• Color-coded category cards</li>
+                                <li>• Category-wise filtering</li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 3 -->
+                        <div class="feature-card bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+                            <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-2xl text-white mb-6">
+                                ✏️
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Easy Management</h3>
+                            <p class="text-gray-600 mb-4">Add, edit, and delete expenses with intuitive forms and instant feedback. No complex setup required.</p>
+                            <ul class="text-sm text-gray-500 space-y-1">
+                                <li>• Quick expense entry</li>
+                                <li>• Edit existing expenses</li>
+                                <li>• One-click deletion</li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 4 -->
+                        <div class="feature-card bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-2xl text-white mb-6">
+                                📱
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Responsive Design</h3>
+                            <p class="text-gray-600 mb-4">Works perfectly on desktop, tablet, and mobile devices with a clean, modern interface that adapts to any screen.</p>
+                            <ul class="text-sm text-gray-500 space-y-1">
+                                <li>• Mobile-first design</li>
+                                <li>• Touch-friendly interface</li>
+                                <li>• Consistent experience</li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 5 -->
+                        <div class="feature-card bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+                            <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center text-2xl text-white mb-6">
+                                🔍
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Advanced Filtering</h3>
+                            <p class="text-gray-600 mb-4">Filter and sort expenses by category, date, or amount to quickly find what you're looking for.</p>
+                            <ul class="text-sm text-gray-500 space-y-1">
+                                <li>• Category filtering</li>
+                                <li>• Date range selection</li>
+                                <li>• Amount-based sorting</li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 6 -->
+                        <div class="feature-card bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+                            <div class="w-16 h-16 bg-gradient-to-r from-teal-500 to-green-600 rounded-lg flex items-center justify-center text-2xl text-white mb-6">
+                                💾
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Local Storage</h3>
+                            <p class="text-gray-600 mb-4">Your data is stored securely in your browser's local storage. No server required, complete privacy guaranteed.</p>
+                            <ul class="text-sm text-gray-500 space-y-1">
+                                <li>• No account required</li>
+                                <li>• Data stays on your device</li>
+                                <li>• Instant loading</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="py-20 bg-gradient-to-r from-purple-600 to-blue-600">
+                <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-4xl font-bold text-white mb-6">Ready to Take Control?</h2>
+                    <p class="text-xl text-purple-100 mb-8">Start tracking your expenses today and gain insights into your spending habits</p>
+                    <button onclick="showLoginForm()" class="bg-white text-purple-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors shadow-lg transform hover:scale-105">
+                        Start Tracking Now →
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Main App (hidden initially) -->
+        <div id="main-app" class="hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center">
+                            <h1 class="text-2xl font-bold text-blue-600">💰 ExpenseTracker</h1>
+                            <span class="ml-4 text-sm text-gray-500">Welcome back, <span id="user-name">Demo User</span>!</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <select id="month-selector" onchange="changeMonth()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                <!-- Month options will be populated here -->
+                            </select>
+                            <button onclick="showAddExpenseModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium">
+                                + Add Expense
+                            </button>
+                            <button onclick="logout()" class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-lg">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Dashboard Overview -->
+                <section class="mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Total Monthly Spending -->
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100 text-sm font-medium">Total Monthly</p>
+                                    <p id="total-monthly" class="text-3xl font-bold">$0.00</p>
+                                </div>
+                                <div class="text-4xl opacity-80">💳</div>
+                            </div>
+                        </div>
+
+                        <!-- Category Cards -->
+                        <div class="category-food rounded-lg shadow-lg p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-red-100 text-sm font-medium">Food</p>
+                                    <p id="total-food" class="text-2xl font-bold">$0.00</p>
+                                </div>
+                                <div class="text-3xl opacity-80">🍕</div>
+                            </div>
+                        </div>
+
+                        <div class="category-rent rounded-lg shadow-lg p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-teal-100 text-sm font-medium">Rent</p>
+                                    <p id="total-rent" class="text-2xl font-bold">$0.00</p>
+                                </div>
+                                <div class="text-3xl opacity-80">🏠</div>
+                            </div>
+                        </div>
+
+                        <div class="category-shopping rounded-lg shadow-lg p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-100 text-sm font-medium">Shopping</p>
+                                    <p id="total-shopping" class="text-2xl font-bold">$0.00</p>
+                                </div>
+                                <div class="text-3xl opacity-80">🛍️</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Categories Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="category-travel rounded-lg shadow-lg p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-yellow-100 text-sm font-medium">Travel</p>
+                                    <p id="total-travel" class="text-2xl font-bold">$0.00</p>
+                                </div>
+                                <div class="text-3xl opacity-80">✈️</div>
+                            </div>
+                        </div>
+
+                        <div class="category-other rounded-lg shadow-lg p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-indigo-100 text-sm font-medium">Other</p>
+                                    <p id="total-other" class="text-2xl font-bold">$0.00</p>
+                                </div>
+                                <div class="text-3xl opacity-80">📦</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-dashed border-gray-300 flex items-center justify-center">
+                            <button onclick="showAddExpenseModal()" class="text-gray-500 hover:text-gray-700 text-center">
+                                <div class="text-3xl mb-2">➕</div>
+                                <p class="text-sm font-medium">Add New Expense</p>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="mb-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Pie Chart -->
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Spending by Category</h3>
+                            <div class="relative h-64">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart -->
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Monthly Comparison</h3>
+                            <div class="relative h-64">
+                                <canvas id="barChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Expenses List -->
+                <section>
+                    <div class="bg-white rounded-lg shadow-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold">Recent Expenses</h3>
+                                <div class="flex space-x-2">
+                                    <select id="category-filter" onchange="filterExpenses()" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                                        <option value="">All Categories</option>
+                                        <option value="food">Food</option>
+                                        <option value="rent">Rent</option>
+                                        <option value="shopping">Shopping</option>
+                                        <option value="travel">Travel</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                    <select id="sort-filter" onchange="filterExpenses()" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                                        <option value="date-desc">Newest First</option>
+                                        <option value="date-asc">Oldest First</option>
+                                        <option value="amount-desc">Highest Amount</option>
+                                        <option value="amount-asc">Lowest Amount</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="expenses-list" class="divide-y divide-gray-200">
+                            <!-- Expenses will be populated here -->
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Add/Edit Expense Modal -->
+        <div id="expense-modal" class="fixed inset-0 modal-backdrop hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 id="modal-title" class="text-xl font-bold">Add New Expense</h3>
+                            <button onclick="closeExpenseModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                        </div>
+                        <form onsubmit="handleExpenseSubmit(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="expense-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <input type="text" id="expense-description" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Grocery shopping">
+                                </div>
+                                <div>
+                                    <label for="expense-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                                    <input type="number" id="expense-amount" required min="0.01" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label for="expense-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                    <select id="expense-category" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">Select Category</option>
+                                        <option value="food">🍕 Food</option>
+                                        <option value="rent">🏠 Rent</option>
+                                        <option value="shopping">🛍️ Shopping</option>
+                                        <option value="travel">✈️ Travel</option>
+                                        <option value="other">📦 Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="expense-date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <input type="date" id="expense-date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div class="flex justify-end space-x-3 mt-6">
+                                <button type="button" onclick="closeExpenseModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                                <button type="submit" id="submit-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Add Expense</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-modal" class="fixed inset-0 modal-backdrop hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
+                    <h3 class="text-lg font-semibold mb-4">Confirm Delete</h3>
+                    <p class="text-gray-600 mb-6">Are you sure you want to delete this expense? This action cannot be undone.</p>
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                        <button onclick="confirmDelete()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+            <!-- Toast messages will appear here -->
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let expenses = [];
+        let currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+        let editingExpenseId = null;
+        let deleteExpenseId = null;
+        let pieChart = null;
+        let barChart = null;
+        let isLoggedIn = false;
+        let currentUser = null;
+
+        // Categories configuration
+        const categories = {
+            food: { name: 'Food', icon: '🍕', color: '#ff6b6b' },
+            rent: { name: 'Rent', icon: '🏠', color: '#4ecdc4' },
+            shopping: { name: 'Shopping', icon: '🛍️', color: '#a8e6cf' },
+            travel: { name: 'Travel', icon: '✈️', color: '#ffd93d' },
+            other: { name: 'Other', icon: '📦', color: '#c7ceea' }
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+        });
+
+        // Authentication functions
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                isLoggedIn = true;
+                showMainApp();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        function showLoginPage() {
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            
+            // Initialize main app
+            loadExpenses();
+            initializeMonthSelector();
+            setDefaultDate();
+            updateDashboard();
+            initializeCharts();
+            renderExpensesList();
+            
+            // Update user name
+            document.getElementById('user-name').textContent = currentUser.name;
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('feature-preview').classList.add('hidden');
+        }
+
+        function hideLoginForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('feature-preview').classList.remove('hidden');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Simple demo authentication
+            if (email === 'demo@expense.com' && password === 'demo123') {
+                currentUser = {
+                    name: 'Demo User',
+                    email: email
+                };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                isLoggedIn = true;
+                
+                // Add some demo data if none exists
+                if (expenses.length === 0) {
+                    addDemoData();
+                }
+                
+                showToast('Welcome to ExpenseTracker!', 'success');
+                showMainApp();
+            } else {
+                showToast('Invalid credentials. Use demo@expense.com / demo123', 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            isLoggedIn = false;
+            showToast('Logged out successfully', 'success');
+            showLoginPage();
+        }
+
+        function addDemoData() {
+            const demoExpenses = [
+                {
+                    id: '1',
+                    description: 'Grocery Shopping',
+                    amount: 85.50,
+                    category: 'food',
+                    date: new Date().toISOString().split('T')[0],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: '2',
+                    description: 'Monthly Rent',
+                    amount: 1200.00,
+                    category: 'rent',
+                    date: new Date().toISOString().split('T')[0],
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: '3',
+                    description: 'Coffee Shop',
+                    amount: 12.50,
+                    category: 'food',
+                    date: new Date(Date.now() - 86400000).toISOString().split('T')[0], // Yesterday
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: '4',
+                    description: 'Online Shopping',
+                    amount: 89.99,
+                    category: 'shopping',
+                    date: new Date(Date.now() - 172800000).toISOString().split('T')[0], // 2 days ago
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            
+            expenses = demoExpenses;
+            saveExpenses();
+        }
+
+        // Local Storage functions
+        function saveExpenses() {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        function loadExpenses() {
+            const stored = localStorage.getItem('expenses');
+            if (stored) {
+                expenses = JSON.parse(stored);
+            }
+        }
+
+        // Month selector functions
+        function initializeMonthSelector() {
+            const selector = document.getElementById('month-selector');
+            const currentDate = new Date();
+            
+            // Clear existing options
+            selector.innerHTML = '';
+            
+            // Generate last 12 months
+            for (let i = 0; i < 12; i++) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                const monthValue = date.toISOString().slice(0, 7);
+                const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                
+                const option = document.createElement('option');
+                option.value = monthValue;
+                option.textContent = monthName;
+                if (monthValue === currentMonth) {
+                    option.selected = true;
+                }
+                selector.appendChild(option);
+            }
+        }
+
+        function changeMonth() {
+            currentMonth = document.getElementById('month-selector').value;
+            updateDashboard();
+            renderExpensesList();
+            updateCharts();
+        }
+
+        function setDefaultDate() {
+            document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Expense management functions
+        function showAddExpenseModal() {
+            editingExpenseId = null;
+            document.getElementById('modal-title').textContent = 'Add New Expense';
+            document.getElementById('submit-btn').textContent = 'Add Expense';
+            clearExpenseForm();
+            setDefaultDate();
+            document.getElementById('expense-modal').classList.remove('hidden');
+        }
+
+        function showEditExpenseModal(expenseId) {
+            const expense = expenses.find(e => e.id === expenseId);
+            if (!expense) return;
+
+            editingExpenseId = expenseId;
+            document.getElementById('modal-title').textContent = 'Edit Expense';
+            document.getElementById('submit-btn').textContent = 'Update Expense';
+            
+            document.getElementById('expense-description').value = expense.description;
+            document.getElementById('expense-amount').value = expense.amount;
+            document.getElementById('expense-category').value = expense.category;
+            document.getElementById('expense-date').value = expense.date;
+            
+            document.getElementById('expense-modal').classList.remove('hidden');
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expense-modal').classList.add('hidden');
+            clearExpenseForm();
+            editingExpenseId = null;
+        }
+
+        function clearExpenseForm() {
+            document.getElementById('expense-description').value = '';
+            document.getElementById('expense-amount').value = '';
+            document.getElementById('expense-category').value = '';
+            document.getElementById('expense-date').value = '';
+        }
+
+        function handleExpenseSubmit(event) {
+            event.preventDefault();
+            
+            const description = document.getElementById('expense-description').value.trim();
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const category = document.getElementById('expense-category').value;
+            const date = document.getElementById('expense-date').value;
+
+            if (!description || !amount || !category || !date) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (editingExpenseId) {
+                // Update existing expense
+                const expenseIndex = expenses.findIndex(e => e.id === editingExpenseId);
+                if (expenseIndex !== -1) {
+                    expenses[expenseIndex] = {
+                        ...expenses[expenseIndex],
+                        description,
+                        amount,
+                        category,
+                        date,
+                        updatedAt: new Date().toISOString()
+                    };
+                    showToast('Expense updated successfully!', 'success');
+                }
+            } else {
+                // Add new expense
+                const newExpense = {
+                    id: Date.now().toString(),
+                    description,
+                    amount,
+                    category,
+                    date,
+                    createdAt: new Date().toISOString()
+                };
+                expenses.push(newExpense);
+                showToast('Expense added successfully!', 'success');
+            }
+
+            saveExpenses();
+            closeExpenseModal();
+            updateDashboard();
+            renderExpensesList();
+            updateCharts();
+        }
+
+        function showDeleteModal(expenseId) {
+            deleteExpenseId = expenseId;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            deleteExpenseId = null;
+        }
+
+        function confirmDelete() {
+            if (deleteExpenseId) {
+                expenses = expenses.filter(e => e.id !== deleteExpenseId);
+                saveExpenses();
+                updateDashboard();
+                renderExpensesList();
+                updateCharts();
+                showToast('Expense deleted successfully', 'success');
+            }
+            closeDeleteModal();
+        }
+
+        // Dashboard functions
+        function updateDashboard() {
+            const monthlyExpenses = getMonthlyExpenses();
+            const categoryTotals = getCategoryTotals(monthlyExpenses);
+
+            // Update total monthly spending
+            const totalMonthly = monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+            document.getElementById('total-monthly').textContent = `$${totalMonthly.toFixed(2)}`;
+
+            // Update category totals
+            Object.keys(categories).forEach(category => {
+                const total = categoryTotals[category] || 0;
+                document.getElementById(`total-${category}`).textContent = `$${total.toFixed(2)}`;
+            });
+        }
+
+        function getMonthlyExpenses() {
+            return expenses.filter(expense => expense.date.startsWith(currentMonth));
+        }
+
+        function getCategoryTotals(expensesList) {
+            const totals = {};
+            expensesList.forEach(expense => {
+                totals[expense.category] = (totals[expense.category] || 0) + expense.amount;
+            });
+            return totals;
+        }
+
+        // Expenses list functions
+        function renderExpensesList() {
+            const monthlyExpenses = getMonthlyExpenses();
+            const filteredExpenses = getFilteredExpenses(monthlyExpenses);
+            const expensesList = document.getElementById('expenses-list');
+
+            if (filteredExpenses.length === 0) {
+                expensesList.innerHTML = `
+                    <div class="p-8 text-center text-gray-500">
+                        <div class="text-4xl mb-4">📊</div>
+                        <p class="text-lg font-medium mb-2">No expenses found</p>
+                        <p class="text-sm">Add your first expense to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            expensesList.innerHTML = filteredExpenses.map(expense => {
+                const categoryInfo = categories[expense.category];
+                const expenseDate = new Date(expense.date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                return `
+                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style="background-color: ${categoryInfo.color}20;">
+                                    ${categoryInfo.icon}
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">${expense.description}</h4>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                        <span>${categoryInfo.name}</span>
+                                        <span>•</span>
+                                        <span>${expenseDate}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-lg font-semibold text-gray-900">$${expense.amount.toFixed(2)}</span>
+                                <div class="flex space-x-1">
+                                    <button onclick="showEditExpenseModal('${expense.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="showDeleteModal('${expense.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getFilteredExpenses(expensesList) {
+            const categoryFilter = document.getElementById('category-filter').value;
+            const sortFilter = document.getElementById('sort-filter').value;
+
+            let filtered = expensesList;
+
+            // Apply category filter
+            if (categoryFilter) {
+                filtered = filtered.filter(expense => expense.category === categoryFilter);
+            }
+
+            // Apply sorting
+            filtered.sort((a, b) => {
+                switch (sortFilter) {
+                    case 'date-asc':
+                        return new Date(a.date) - new Date(b.date);
+                    case 'date-desc':
+                        return new Date(b.date) - new Date(a.date);
+                    case 'amount-asc':
+                        return a.amount - b.amount;
+                    case 'amount-desc':
+                        return b.amount - a.amount;
+                    default:
+                        return new Date(b.date) - new Date(a.date);
+                }
+            });
+
+            return filtered;
+        }
+
+        function filterExpenses() {
+            renderExpensesList();
+        }
+
+        // Charts functions
+        function initializeCharts() {
+            initializePieChart();
+            initializeBarChart();
+            updateCharts();
+        }
+
+        function initializePieChart() {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Monthly Spending',
+                        data: [],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            updatePieChart();
+            updateBarChart();
+        }
+
+        function updatePieChart() {
+            const monthlyExpenses = getMonthlyExpenses();
+            const categoryTotals = getCategoryTotals(monthlyExpenses);
+
+            const labels = [];
+            const data = [];
+            const colors = [];
+
+            Object.entries(categoryTotals).forEach(([category, total]) => {
+                if (total > 0) {
+                    labels.push(categories[category].name);
+                    data.push(total);
+                    colors.push(categories[category].color);
+                }
+            });
+
+            pieChart.data.labels = labels;
+            pieChart.data.datasets[0].data = data;
+            pieChart.data.datasets[0].backgroundColor = colors;
+            pieChart.update();
+        }
+
+        function updateBarChart() {
+            // Get last 6 months of data
+            const months = [];
+            const totals = [];
+            const currentDate = new Date();
+
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                const monthKey = date.toISOString().slice(0, 7);
+                const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                
+                const monthExpenses = expenses.filter(expense => expense.date.startsWith(monthKey));
+                const monthTotal = monthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                
+                months.push(monthName);
+                totals.push(monthTotal);
+            }
+
+            barChart.data.labels = months;
+            barChart.data.datasets[0].data = totals;
+            barChart.update();
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `px-6 py-4 rounded-lg shadow-lg text-white max-w-sm ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                type === 'warning' ? 'bg-yellow-500' :
+                'bg-blue-500'
+            } fade-in`;
+            toast.textContent = message;
+
+            document.getElementById('toast-container').appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99370d9f67fe802e',t:'MTc2MTI4MzUyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
